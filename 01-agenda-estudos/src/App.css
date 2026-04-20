@@ -1,0 +1,105 @@
+.container {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 30px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 30px;
+  font-size: 28px;
+}
+
+.input-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.input-tarefa {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  outline: none;
+}
+
+.input-tarefa:focus {
+  border-color: #3498db;
+}
+
+.botao-adicionar {
+  padding: 12px 20px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.botao-adicionar:hover {
+  background-color: #2980b9;
+}
+
+.lista-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mensagem-vazia {
+  text-align: center;
+  color: #7f8c8d;
+  font-style: italic;
+  padding: 20px;
+}
+
+.tarefa-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background-color: #fff3cd;
+  border: 1px solid #e9ecef;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.tarefa-item:hover {
+  background-color: #ffeaa7;
+}
+
+.tarefa-texto {
+  flex: 1;
+  cursor: pointer;
+  font-size: 16px;
+  color: #2c3e50;
+  transition: all 0.3s;
+}
+
+.tarefa-texto.completada {
+  text-decoration: line-through;
+  color: #7f8c8d;
+}
+
+.botao-excluir {
+  padding: 8px 15px;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.botao-excluir:hover {
+  background-color: #c0392b;
+}
