@@ -2,72 +2,79 @@ import React, { useState } from 'react'
 import './App.css'
 
 function App() {
-  const [lista, setLista] = useState([])
-  const [novaTarefa, setNovaTarefa] = useState('')
+  const [listaDeMaterias, setListaDeMaterias] = useState([])
+  const [novaMateria, setNovaMateria] = useState('')
 
-  const adicionarTarefa = () => {
-    if (novaTarefa.trim() !== '') {
-      const tarefa = {
-        id: Date.now(),
-        texto: novaTarefa,
+  const adicionarMateria = () => {
+    const textoLimpo = novaMateria.trim()
+
+    if (textoLimpo !== '') {
+      const materia = {
+        id: crypto.randomUUID(),
+        texto: textoLimpo,
         completada: false
       }
-      setLista([...lista, tarefa])
-      setNovaTarefa('')
+
+      // tive que usar atualização funcional + spread para garantir que pego o estado mais novo sem mutar o original
+      setListaDeMaterias((listaAtual) => [...listaAtual, materia])
+      setNovaMateria('')
     }
   }
 
   const alternarCompletada = (id) => {
-    setLista(lista.map(tarefa => 
-      tarefa.id === id 
-        ? { ...tarefa, completada: !tarefa.completada }
-        : tarefa
-    ))
+    setListaDeMaterias((listaAtual) =>
+      listaAtual.map((materia) =>
+        materia.id === id
+          ? { ...materia, completada: !materia.completada }
+          : materia
+      )
+    )
   }
 
-  const excluirTarefa = (id) => {
-    setLista(lista.filter(tarefa => tarefa.id !== id))
+  const excluirMateria = (id) => {
+    setListaDeMaterias((listaAtual) =>
+      listaAtual.filter((materia) => materia.id !== id)
+    )
   }
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      adicionarTarefa()
+  const handleTecla = (evento) => {
+    if (evento.key === 'Enter') {
+      adicionarMateria()
     }
   }
 
   return (
     <div className="container">
-      {/* Mudei o título aqui para personalizar meu primeiro projeto */}
       <h1>Agenda de Estudos do Clóvis</h1>
-      
+
       <div className="input-container">
         <input
           type="text"
-          value={novaTarefa}
-          onChange={(e) => setNovaTarefa(e.target.value)}
-          onKeyPress={handleKeyPress}
+          value={novaMateria}
+          onChange={(evento) => setNovaMateria(evento.target.value)}
+          onKeyDown={handleTecla}
           placeholder="Digite a matéria para estudar..."
           className="input-tarefa"
         />
-        <button onClick={adicionarTarefa} className="botao-adicionar">
+        <button onClick={adicionarMateria} className="botao-adicionar">
           Adicionar
         </button>
       </div>
 
       <div className="lista-container">
-        {lista.length === 0 ? (
+        {listaDeMaterias.length === 0 ? (
           <p className="mensagem-vazia">Nenhuma tarefa adicionada ainda.</p>
         ) : (
-          lista.map(tarefa => (
-            <div key={tarefa.id} className="tarefa-item">
+          listaDeMaterias.map((materia) => (
+            <div key={materia.id} className="tarefa-item">
               <span
-                onClick={() => alternarCompletada(tarefa.id)}
-                className={`tarefa-texto ${tarefa.completada ? 'completada' : ''}`}
+                onClick={() => alternarCompletada(materia.id)}
+                className={`tarefa-texto ${materia.completada ? 'completada' : ''}`}
               >
-                {tarefa.texto}
+                {materia.texto}
               </span>
               <button
-                onClick={() => excluirTarefa(tarefa.id)}
+                onClick={() => excluirMateria(materia.id)}
                 className="botao-excluir"
               >
                 Excluir
