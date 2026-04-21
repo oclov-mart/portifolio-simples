@@ -6,38 +6,47 @@ function App() {
   const [novaMateria, setNovaMateria] = useState('')
 
   const adicionarMateria = () => {
-    const textoLimpo = novaMateria.trim()
+    const materiaDigitada = novaMateria.trim()
 
-    if (textoLimpo !== '') {
-      const materia = {
-        id: crypto.randomUUID(),
-        texto: textoLimpo,
-        completada: false
-      }
+    if (materiaDigitada === '') return
 
-      // tive que usar atualização funcional + spread para garantir que pego o estado mais novo sem mutar o original
-      setListaDeMaterias((listaAtual) => [...listaAtual, materia])
-      setNovaMateria('')
+    const jaExiste = listaDeMaterias.some(
+      (materia) => materia.texto.toLowerCase() === materiaDigitada.toLowerCase()
+    )
+
+    if (jaExiste) {
+      alert('Essa matéria já está na lista.')
+      return
     }
+
+    const materiaNova = {
+      id: Date.now() + Math.random(),
+      texto: materiaDigitada,
+      completada: false
+    }
+
+    // aqui usei spread pra montar uma lista nova e não mexer direto na lista antiga
+    setListaDeMaterias([...listaDeMaterias, materiaNova])
+    setNovaMateria('')
   }
 
   const alternarCompletada = (id) => {
-    setListaDeMaterias((listaAtual) =>
-      listaAtual.map((materia) =>
-        materia.id === id
-          ? { ...materia, completada: !materia.completada }
-          : materia
-      )
-    )
+    const novaLista = listaDeMaterias.map((materia) => {
+      if (materia.id === id) {
+        return { ...materia, completada: !materia.completada }
+      }
+      return materia
+    })
+
+    setListaDeMaterias(novaLista)
   }
 
   const excluirMateria = (id) => {
-    setListaDeMaterias((listaAtual) =>
-      listaAtual.filter((materia) => materia.id !== id)
-    )
+    const novaLista = listaDeMaterias.filter((materia) => materia.id !== id)
+    setListaDeMaterias(novaLista)
   }
 
-  const handleTecla = (evento) => {
+  const apertouTecla = (evento) => {
     if (evento.key === 'Enter') {
       adicionarMateria()
     }
@@ -52,7 +61,7 @@ function App() {
           type="text"
           value={novaMateria}
           onChange={(evento) => setNovaMateria(evento.target.value)}
-          onKeyDown={handleTecla}
+          onKeyDown={apertouTecla}
           placeholder="Digite a matéria para estudar..."
           className="input-tarefa"
         />
@@ -73,6 +82,7 @@ function App() {
               >
                 {materia.texto}
               </span>
+
               <button
                 onClick={() => excluirMateria(materia.id)}
                 className="botao-excluir"
