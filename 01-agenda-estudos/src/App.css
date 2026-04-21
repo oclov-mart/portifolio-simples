@@ -1,105 +1,128 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
+}
+
 .container {
   max-width: 600px;
+  width: 100%;
   margin: 50px auto;
   padding: 30px;
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 h1 {
   text-align: center;
-  color: #2c3e50;
+  color: #ffffff;
   margin-bottom: 30px;
-  font-size: 28px;
+  font-size: 32px;
+  font-weight: 600;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.input-container {
+.input-area {
   display: flex;
   gap: 10px;
   margin-bottom: 30px;
 }
 
-.input-tarefa {
+input {
   flex: 1;
-  padding: 12px;
-  border: 2px solid #ddd;
-  border-radius: 5px;
+  padding: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
   font-size: 16px;
   outline: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transition: all 0.3s ease;
 }
 
-.input-tarefa:focus {
-  border-color: #3498db;
+input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.botao-adicionar {
-  padding: 12px 20px;
-  background-color: #3498db;
+input:focus {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+button {
+  padding: 15px 25px;
+  background: linear-gradient(45deg, #ff6b6b, #ff8e53);
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 12px;
   font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
 }
 
-.botao-adicionar:hover {
-  background-color: #2980b9;
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
 }
 
-.lista-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.mensagem-vazia {
-  text-align: center;
-  color: #7f8c8d;
-  font-style: italic;
-  padding: 20px;
-}
-
-.tarefa-item {
+.item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
-  background-color: #fff3cd;
-  border: 1px solid #e9ecef;
-  border-radius: 5px;
-  transition: background-color 0.3s;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  margin-bottom: 15px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
 }
 
-.tarefa-item:hover {
-  background-color: #ffeaa7;
+.item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(5px);
 }
 
-.tarefa-texto {
+.item span {
   flex: 1;
   cursor: pointer;
   font-size: 16px;
-  color: #2c3e50;
-  transition: all 0.3s;
-}
-
-.tarefa-texto.completada {
-  text-decoration: line-through;
-  color: #7f8c8d;
-}
-
-.botao-excluir {
-  padding: 8px 15px;
-  background-color: #e74c3c;
   color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  margin-right: 15px;
 }
 
-.botao-excluir:hover {
-  background-color: #c0392b;
+.item button {
+  padding: 8px 15px;
+  background: linear-gradient(45deg, #e74c3c, #c0392b);
+  font-size: 14px;
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+
+.item button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+}
+
+p {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
+  padding: 20px;
+  font-size: 16px;
 }

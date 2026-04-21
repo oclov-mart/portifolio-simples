@@ -1,80 +1,108 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import './App.css'
 
 function App() {
   const [lista, setLista] = useState([])
-  const [novaTarefa, setNovaTarefa] = useState('')
+  const [input, setInput] = useState('')
+  const [carregado, setCarregado] = useState(false)
 
-  const adicionarTarefa = () => {
-    if (novaTarefa.trim() !== '') {
-      const tarefa = {
-        id: Date.now(),
-        texto: novaTarefa,
-        completada: false
+  // Carrega do localStorage apenas uma vez
+  useEffect(() => {
+    const dadosSalvos = localStorage.getItem('minhas_tarefas')
+    console.log('Carregando do localStorage:', dadosSalvos)
+    if (dadosSalvos) {
+      try {
+        const parseado = JSON.parse(dadosSalvos)
+        console.log('Parseado:', parseado)
+        setLista(parseado)
+      } catch (e) {
+        console.error('Erro ao parsear:', e)
       }
-      setLista([...lista, tarefa])
-      setNovaTarefa('')
     }
+    setCarregado(true)
+  }, [])
+
+  // Só salva depois de carregar e quando a lista mudar
+  useEffect(() => {
+    if (carregado) {
+      console.log('Salvando no localStorage:', lista)
+      localStorage.setItem('minhas_tarefas', JSON.stringify(lista))
+    }
+  }, [lista, carregado])
+
+  function adicionar() {
+    if (!input.trim()) return
+
+    const nova = {
+      id: Date.now(),
+      texto: input,
+      feita: false
+    }
+
+    setLista([...lista, nova])
+    setInput('')
   }
 
-  const alternarCompletada = (id) => {
-    setLista(lista.map(tarefa => 
-      tarefa.id === id 
-        ? { ...tarefa, completada: !tarefa.completada }
-        : tarefa
-    ))
+  function marcarComoFeita(id) {
+    setLista(
+      lista.map(item => {
+        if (item.id === id) {
+          return { ...item, feita: !item.feita }
+        }
+        return item
+      })
+    )
   }
 
-  const excluirTarefa = (id) => {
-    setLista(lista.filter(tarefa => tarefa.id !== id))
+  function remover(id) {
+    setLista(lista.filter(item => item.id !== id))
   }
 
-  const handleKeyPress = (e) => {
+  function tecla(e) {
     if (e.key === 'Enter') {
-      adicionarTarefa()
+      adicionar()
     }
   }
 
   return (
     <div className="container">
-      {/* Mudei o título aqui para personalizar meu primeiro projeto */}
-      <h1>Agenda de Estudos do Clóvis</h1>
-      
-      <div className="input-container">
+      <h1>minha agenda de estudos</h1>
+
+      <div className="input-area">
         <input
-          type="text"
-          value={novaTarefa}
-          onChange={(e) => setNovaTarefa(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder="Digite a matéria para estudar..."
-          className="input-tarefa"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={tecla}
+          placeholder="coloca aqui o que tu vai estudar"
         />
-        <button onClick={adicionarTarefa} className="botao-adicionar">
-          Adicionar
+
+        <button onClick={adicionar}>
+          adicionar
         </button>
       </div>
 
-      <div className="lista-container">
-        {lista.length === 0 ? (
-          <p className="mensagem-vazia">Nenhuma tarefa adicionada ainda.</p>
-        ) : (
-          lista.map(tarefa => (
-            <div key={tarefa.id} className="tarefa-item">
-              <span
-                onClick={() => alternarCompletada(tarefa.id)}
-                className={`tarefa-texto ${tarefa.completada ? 'completada' : ''}`}
-              >
-                {tarefa.texto}
-              </span>
-              <button
-                onClick={() => excluirTarefa(tarefa.id)}
-                className="botao-excluir"
-              >
-                Excluir
-              </button>
-            </div>
-          ))
+      <div>
+        {lista.length === 0 && (
+          <p>ainda não tem nada aqui</p>
         )}
+
+        {lista.map(item => (
+          <div key={item.id} className="item">
+            <span
+              onClick={() => marcarComoFeita(item.id)}
+              style={{
+                textDecoration: item.feita ? 'line-through' : 'none',
+                cursor: 'pointer'
+              }}
+            >
+              {item.texto}
+            </span>
+
+            <button onClick={() => remover(item.id)}>
+              apagar
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   )
