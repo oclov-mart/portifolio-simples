@@ -6,5 +6,8 @@ dist/
 __pycache__/
 .venv/
 02-noc-automacao/config.yaml
-02-noc-automacao/.perfil-navegador/
+02-noc-automacao/.perfil-bot/
 02-noc-automacao/prints/
+02-noc-automacao/estado.json
+02-noc-automacao/estado.tmp
+02-noc-automacao/bot.log*

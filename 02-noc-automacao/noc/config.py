@@ -1,75 +1,114 @@
-"""Carrega o config.yaml com tudo que é específico do seu ambiente de NOC."""
+"""Leitura do config.yaml.
 
-from dataclasses import dataclass
+Tudo que depende do seu ambiente (URLs, textos das mensagens, e-mails das
+operadoras, colunas da planilha) fica no YAML. Os valores abaixo são os padrões
+usados quando uma chave não aparece no arquivo.
+"""
+
+import copy
+import re
 from pathlib import Path
 
 import yaml
 
-SEVERIDADES = ["info", "baixa", "media", "alta", "desastre"]
+PADROES = {
+    "modelo": "claude-opus-5-5",
+    "esforco_acao": "medium",     # cliques e preenchimentos
+    "esforco_leitura": "low",     # leitura de telas
+    "max_passos": 30,             # limite de rodadas por tarefa de interface
+    "intervalo_ciclo_seg": 120,
+    "leituras_confirmacao": 2,    # ciclos seguidos vendo o alarme antes de agir
+    "ciclos_para_normalizar": 3,  # ciclos seguidos sem o alarme para dá-lo por resolvido
+    "arquivo_estado": "estado.json",
+    "navegador": {
+        "perfil_dir": ".perfil-bot",
+        "pasta_prints": "prints",
+        "guardar_prints": False,  # True salva todo print enviado ao Claude
+        "headless": False,
+        "canal": None,            # None = Chromium do Playwright
+        "executavel": None,
+        "largura": 1280,
+        "altura": 800,
+    },
+    "zabbix": {
+        "url_problemas": "https://zabbix.pmenos.com.br/zabbix.php?action=problem.view",
+        "instrucoes": "",
+        "padrao_loja": r"(?i)(?:loja|filial|lj|f)[\s_-]*0*(\d{1,4})",
+        "padrao_icmp": r"(?i)icmp",
+        "padrao_link": r"(?i)(link|interface|wan|circuito)",
+        "minutos_link": 10,
+        "minutos_sem_resposta": 30,
+        "max_telas": 5,
+        "mensagens": {},
+    },
+    "infofilial": {"url": "http://localhost:8080/infofilial/{loja}", "instrucoes": ""},
+    "whatsapp": {
+        "url": "https://web.whatsapp.com",
+        "ddi": "55",
+        "grupo_energia": "",
+        "seletor_rascunho": "footer [contenteditable='true']",
+        "seletor_titulo_conversa": "#main header",
+        "mensagens": {},
+    },
+    "gmail": {"url": "https://mail.google.com/mail/u/0/", "cc_noc": [], "dias_busca_protocolo": 3},
+    "sumovision": {
+        "url": "https://sumovision.fbrlabs.com.br/",
+        "instrucoes": "",
+        "padrao_protocolo": r"FBR-PGM-\d+",
+    },
+    "planilha": {"url": "", "instrucoes": "", "colunas": []},
+    "operadoras": {},
+}
+
+# Mensagens de WhatsApp precisam citar a loja: é o que a trava confere.
+MENSAGENS_WHATSAPP = ["icmp_loja", "icmp_gestor", "link_loja", "link_gestor", "energia_grupo"]
 
 
-@dataclass
-class Aba:
-    nome: str
-    url: str
-    # Explica ao Claude o que é essa tela e o que conta como alerta.
-    instrucoes: str = ""
-    recarregar: bool = True
+def _mesclar(base: dict, extra: dict) -> dict:
+    for chave, valor in (extra or {}).items():
+        if isinstance(valor, dict) and isinstance(base.get(chave), dict):
+            _mesclar(base[chave], valor)
+        else:
+            base[chave] = valor
+    return base
 
 
-@dataclass
-class Formulario:
-    url: str
-    # Campos do formulário e como preenchê-los a partir de um alerta.
-    instrucoes: str = ""
+def validar(cfg: dict) -> None:
+    """Falha logo na partida se faltar algo que faria o bot errar no meio do caminho."""
+    erros = []
+    for chave in MENSAGENS_WHATSAPP:
+        texto = cfg["whatsapp"]["mensagens"].get(chave)
+        if not texto:
+            erros.append(f"whatsapp.mensagens.{chave} não definido")
+        elif "{loja}" not in texto:
+            erros.append(f"whatsapp.mensagens.{chave} precisa conter {{loja}} (trava de segurança)")
+    for nome, op in cfg["operadoras"].items():
+        if op.get("canal") not in ("email", "sumovision"):
+            erros.append(f"operadoras.{nome}.canal deve ser 'email' ou 'sumovision'")
+        if op.get("canal") == "email":
+            for campo in ("para", "assunto", "corpo", "padrao_protocolo"):
+                if not op.get(campo):
+                    erros.append(f"operadoras.{nome}.{campo} não definido")
+            if op.get("padrao_protocolo"):
+                re.compile(op["padrao_protocolo"])
+    if not cfg["whatsapp"]["grupo_energia"]:
+        erros.append("whatsapp.grupo_energia não definido")
+    if erros:
+        raise ValueError("Configuração inválida:\n- " + "\n- ".join(erros))
 
 
-@dataclass
-class WhatsApp:
-    contato: str
-    url: str = "https://web.whatsapp.com"
-    # Placeholders: {severidade} {host} {descricao} {aba} {chamado}
-    modelo_mensagem: str = (
-        "[NOC] {severidade}: {host} - {descricao} (painel: {aba}). Chamado: {chamado}"
-    )
-
-
-@dataclass
-class Config:
-    abas: list[Aba]
-    formulario: Formulario | None = None
-    whatsapp: WhatsApp | None = None
-    modelo: str = "claude-opus-5-5"
-    esforco_agente: str = "high"
-    esforco_monitoramento: str = "low"
-    severidade_minima: str = "alta"
-    confirmar_acoes: bool = True
-    max_passos: int = 40
-    intervalo_ciclo_seg: int = 300
-    perfil_dir: Path = Path(".perfil-navegador")
-    pasta_prints: Path = Path("prints")
-    largura: int = 1280
-    altura: int = 800
-    headless: bool = False
-
-
-def carregar_config(caminho: str | Path) -> Config:
+def carregar_config(caminho: str | Path) -> dict:
     dados = yaml.safe_load(Path(caminho).read_text(encoding="utf-8")) or {}
-    nav = dados.pop("navegador", {}) or {}
-    form = dados.pop("formulario_chamado", None)
-    zap = dados.pop("whatsapp", None)
-
-    cfg = Config(
-        abas=[Aba(**a) for a in dados.pop("abas", [])],
-        formulario=Formulario(**form) if form else None,
-        whatsapp=WhatsApp(**zap) if zap else None,
-        perfil_dir=Path(nav.get("perfil_dir", ".perfil-navegador")),
-        pasta_prints=Path(nav.get("pasta_prints", "prints")),
-        largura=nav.get("largura", 1280),
-        altura=nav.get("altura", 800),
-        headless=nav.get("headless", False),
-        **{k: v for k, v in dados.items() if k in Config.__dataclass_fields__},
-    )
-    if cfg.severidade_minima not in SEVERIDADES:
-        raise ValueError(f"severidade_minima deve ser uma de {SEVERIDADES}")
+    cfg = _mesclar(copy.deepcopy(PADROES), dados)
+    validar(cfg)
     return cfg
+
+
+class _Dados(dict):
+    def __missing__(self, chave):
+        return ""
+
+
+def formatar(modelo: str, dados: dict) -> str:
+    """Preenche {campos} do modelo; campo sem valor vira texto vazio."""
+    return modelo.format_map(_Dados(dados)).strip()

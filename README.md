@@ -9,8 +9,8 @@ Bem-vindo ao meu repositório de aprendizado! Aqui organizo os projetos que dese
 * **Aprendizado:** Configuração de ambiente Node.js, Vite e Hooks básicos do React.
 
 ### 2. [Automação de NOC (Python + Playwright + Claude)](./02-noc-automacao)
-* **O que é:** Um robô que monitora painéis, abre chamados e avisa o plantão no WhatsApp, usando prints da tela e a API do Claude para decidir os cliques.
-* **Aprendizado:** Automação de navegador com Playwright, agentes com *tool use* e saída estruturada com Pydantic.
+* **O que é:** Um bot de NOC que roda com um comando: lê os alarmes do Zabbix, avisa loja/GL/GR no WhatsApp, abre chamados nas operadoras (Gmail e Sumo Vision) e registra faltas de energia, operando os sistemas só por prints da tela, mouse e teclado.
+* **Aprendizado:** Automação de navegador com Playwright, visão computacional com a API do Claude (*computer use*), saída estruturada com Pydantic e máquina de estados com persistência.
 
 ---
 *Em breve: Novos projetos de algoritmos e banco de dados...*

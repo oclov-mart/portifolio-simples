@@ -1,44 +1,142 @@
-# Copie para config.yaml e ajuste para o seu ambiente.
-# config.yaml fica fora do git (pode conter URLs internas).
+# Copie para config.yaml e ajuste. O config.yaml fica fora do git.
+# Campos entre chaves nos textos ({loja}, {nome_loja}, {gl_nome}, {protocolo}...)
+# são preenchidos automaticamente. Lista completa no README.
 
 modelo: claude-opus-5-5
-esforco_agente: high          # cliques/formulários: low | medium | high | xhigh | max
-esforco_monitoramento: low    # leitura dos painéis (mais barato)
-severidade_minima: alta       # info | baixa | media | alta | desastre
-confirmar_acoes: true         # pede "s/N" no terminal antes de enviar chamado/mensagem
-max_passos: 40                # limite de rodadas do agente por tarefa
-intervalo_ciclo_seg: 300      # usado pelo comando "loop"
+esforco_acao: medium         # cliques/preenchimentos: low | medium | high | xhigh | max
+esforco_leitura: low         # leitura de telas
+intervalo_ciclo_seg: 120
+leituras_confirmacao: 2      # só age em alarme visto em 2 leituras seguidas
+ciclos_para_normalizar: 3    # 3 leituras seguidas sem o alarme = normalizado
 
 navegador:
-  perfil_dir: .perfil-navegador   # guarda cookies/login (WhatsApp, painéis)
-  pasta_prints: prints
+  perfil_dir: .perfil-bot    # perfil próprio do bot (logins salvos aqui)
+  pasta_prints: prints       # prints de erro (e de tudo, se guardar_prints: true)
+  guardar_prints: false
   largura: 1280
   altura: 800
-  headless: false
+  # canal: chrome            # descomente para usar o Chrome instalado (com perfil próprio)
 
-# Abas que serão monitoradas. "instrucoes" ajuda o Claude a ler cada tela.
-abas:
-  - nome: zabbix
-    url: https://zabbix.exemplo.local/zabbix.php?action=problem.view
-    instrucoes: >
-      Tela de problemas do Zabbix. Cada linha é um problema ativo; a coluna
-      Severity indica a gravidade (Disaster = desastre, High = alta,
-      Average = media, Warning = baixa, Information = info).
-  - nome: grafana
-    url: https://grafana.exemplo.local/d/abc123/links-wan
-    instrucoes: >
-      Painel de links WAN. Painéis vermelhos indicam link fora (alta);
-      amarelos indicam perda de pacote acima de 5% (media).
+zabbix:
+  # Use um filtro salvo que mostre só lojas, ICMP e links, SEM esconder os
+  # reconhecidos (o bot precisa ver o alarme depois de dar ack).
+  url_problemas: https://zabbix.pmenos.com.br/zabbix.php?action=problem.view
+  instrucoes: ""
+  padrao_loja: '(?i)(?:loja|filial|lj|f)[\s_-]*0*(\d{1,4})'   # extrai o nº da loja do host
+  padrao_icmp: '(?i)icmp'
+  padrao_link: '(?i)(link|interface|wan|circuito)'
+  minutos_link: 10
+  minutos_sem_resposta: 30
+  mensagens:
+    contato_icmp: "[BOT NOC] Loja {loja} sem comunicação (ICMP). Contato via WhatsApp com loja, GL e GR em {hora}."
+    contato_link: "[BOT NOC] Link {operadora} da loja {loja} fora desde {inicio}. Chamados: {chamados}. Loja/GL/GR avisados."
+    sem_resposta: "[BOT NOC] Loja {loja} sem retorno da loja/GL/GR após 30 min. Verificar manualmente."
+    energia: "ENERGIA - [BOT NOC] Falta de energia confirmada na loja {loja} às {hora}."
+    protocolo: "[BOT NOC] Protocolo {operadora}: {protocolo}"
 
-formulario_chamado:
-  url: https://chamados.exemplo.local/novo
-  instrucoes: |
-    - Título: "[NOC] <host> - <descrição curta>"
-    - Categoria: Infraestrutura > Rede
-    - Prioridade: desastre -> Crítica, alta -> Alta, media -> Média
-    - Descrição: copie a descrição do alerta e o painel de origem
-    - Botão final: "Salvar"
+infofilial:
+  url: http://localhost:8080/infofilial/{loja}
+  instrucoes: ""
 
 whatsapp:
-  contato: "NOC - Plantão"
-  modelo_mensagem: "🚨 [NOC] {severidade}: {host} - {descricao} (painel: {aba}). Chamado: {chamado}"
+  url: https://web.whatsapp.com
+  ddi: "55"
+  grupo_energia: "NOC - Energia"          # nome exato do grupo
+  seletor_rascunho: "footer [contenteditable='true']"
+  seletor_titulo_conversa: "#main header"
+  mensagens:                               # TODAS precisam conter {loja}
+    icmp_loja: "Olá! Aqui é o NOC. A loja {loja} ({nome_loja}) está sem comunicação com a rede. Vocês estão com energia na loja?"
+    icmp_gestor: "Olá, {nome}. NOC aqui: a loja {loja} ({nome_loja}) está sem comunicação. Pode confirmar se há falta de energia?"
+    link_loja: "Olá! NOC aqui. O link {operadora} da loja {loja} está fora. Chamado aberto com a operadora ({chamados}). A loja segue operando pelo outro link."
+    link_gestor: "{nome}, NOC informa: link {operadora} da loja {loja} ({nome_loja}) fora desde {inicio}. Chamado: {chamados}."
+    energia_grupo: |
+      ⚡ FALTA DE ENERGIA
+      Loja: {loja} - {nome_loja}
+      Cidade: {cidade}
+      Início: {inicio}
+      Confirmado às {hora}
+
+gmail:
+  url: https://mail.google.com/mail/u/0/
+  cc_noc: [noc@pmenos.com.br]
+  dias_busca_protocolo: 3
+
+sumovision:
+  url: https://sumovision.fbrlabs.com.br/
+  instrucoes: ""
+  padrao_protocolo: 'FBR-PGM-\d+'
+
+planilha:
+  url: ""   # link da planilha de desastres no SharePoint
+  instrucoes: ""
+  colunas: ["{data}", "{loja}", "{nome_loja}", "{cidade}", "Falta de energia", "{inicio}", "{gl_nome}", "{gr_nome}"]
+
+# Uma entrada por operadora. canal: email (Gmail) ou sumovision.
+# padrao_zabbix: como a operadora aparece no nome do alarme.
+# nome_infofilial: como ela aparece na lista de circuitos da infofilial.
+operadoras:
+  vivo:
+    nome: Vivo
+    canal: email
+    padrao_zabbix: '(?i)vivo'
+    nome_infofilial: Vivo
+    para: [PREENCHER@vivo.com.br]
+    assunto: "Abertura de chamado - Loja {loja} - Circuito {circuito}"
+    padrao_protocolo: '(?i)protocolo\D{0,20}(\d{6,})'
+    corpo: |
+      Prezados,
+
+      Solicitamos abertura de chamado para o circuito abaixo, inoperante desde {inicio}.
+
+      Circuito: {circuito}
+      Unidade: Loja {loja} - {nome_loja}
+      Endereço: {endereco} - {cidade}
+      Contato na loja: {telefone_loja}
+
+      Atenciosamente,
+      NOC Pague Menos
+  claro:
+    nome: Claro
+    canal: email
+    padrao_zabbix: '(?i)claro'
+    nome_infofilial: Claro
+    para: [PREENCHER@claro.com.br]
+    assunto: "Abertura de chamado - Loja {loja} - Circuito {circuito}"
+    padrao_protocolo: '(?i)protocolo\D{0,20}(\d{6,})'
+    corpo: |
+      Prezados,
+
+      Solicitamos abertura de chamado para o circuito abaixo, inoperante desde {inicio}.
+
+      Circuito: {circuito}
+      Unidade: Loja {loja} - {nome_loja}
+      Endereço: {endereco} - {cidade}
+      Contato na loja: {telefone_loja}
+
+      --- BLOCO DE ASSINATURA OBRIGATÓRIO DA CLARO (PREENCHER) ---
+      Nome do solicitante:
+      CNPJ:
+      Telefone de contato:
+  hexato:
+    nome: Hexato
+    canal: email
+    padrao_zabbix: '(?i)hexato'
+    nome_infofilial: Hexato
+    para: [PREENCHER@hexato.com.br]
+    assunto: "Abertura de chamado - Loja {loja} - Circuito {circuito}"
+    padrao_protocolo: '(?i)(?:protocolo|chamado|ticket)\D{0,20}(\d{4,})'
+    corpo: |
+      Prezados,
+
+      Circuito {circuito} da Loja {loja} - {nome_loja} ({cidade}) inoperante desde {inicio}.
+      Favor abrir chamado e informar o protocolo.
+
+      Atenciosamente,
+      NOC Pague Menos
+  fbr:
+    nome: FBR
+    canal: sumovision
+    padrao_zabbix: '(?i)fbr'
+    nome_infofilial: FBR
+    titulo: "Loja {loja} - {nome_loja} - link inoperante"
+    descricao: "Link FBR da loja {loja} ({cidade}) inoperante desde {inicio}. Contato na loja: {telefone_loja}."
