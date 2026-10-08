@@ -8,7 +8,6 @@ leituras baterem.
 import logging
 import re
 import time
-from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -27,9 +26,6 @@ class Circuito(BaseModel):
 
 class Filial(BaseModel):
     numero_loja_na_tela: str = Field(description="Número da loja/filial mostrado na página.")
-    bandeira: Literal["pague_menos", "extrafarma", "desconhecida"] = Field(
-        description="Rede da loja pelo nome/logo na página: Pague Menos ou Extrafarma. "
-                    "Use desconhecida se não estiver claro.")
     nome: str
     cidade: str
     endereco: str
@@ -48,7 +44,7 @@ class Filial(BaseModel):
 
     def campos(self) -> dict:
         """Campos disponíveis nos modelos de mensagem ({nome_loja}, {gl_nome}...)."""
-        dados = self.model_dump(exclude={"circuitos", "numero_loja_na_tela", "bandeira"})
+        dados = self.model_dump(exclude={"circuitos", "numero_loja_na_tela"})
         dados["nome_loja"] = dados.pop("nome")
         return dados
 
@@ -57,13 +53,11 @@ PROMPT = """Este é um print da página de informações de uma filial (loja).
 {instrucoes}
 
 Transcreva os dados da loja. Telefones: copie todos os dígitos exatamente como \
-aparecem, com DDD. GL = gerente da loja; GR = gerente regional. Bandeira: \
-Pague Menos ou Extrafarma, pelo nome ou logo da loja na página. Liste todos os \
+aparecem, com DDD. GL = gerente da loja; GR = gerente regional. Liste todos os \
 circuitos/links de internet com a operadora e o identificador. Campo ausente ou \
 ilegível: deixe vazio."""
 
-CAMPOS_CONFERIDOS = ("numero_loja_na_tela", "bandeira", "telefone_loja", "gl_telefone",
-                     "gr_telefone", "email_loja")
+CAMPOS_CONFERIDOS = ("numero_loja_na_tela", "telefone_loja", "gl_telefone", "gr_telefone", "email_loja")
 
 
 def _digitos(texto: str) -> str:

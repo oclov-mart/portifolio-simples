@@ -87,9 +87,8 @@ Tudo que é específico do seu ambiente está no `config.yaml`:
 - **`operadoras`:** destinatários, assunto, corpo (com a assinatura obrigatória da Claro) e o
   padrão do protocolo na resposta de cada uma. Os e-mails estão como `PREENCHER`.
 - **`gmail.email_loja_por_bandeira`:** e-mail da unidade em cópia quando a infofilial não mostra um
-  e-mail válido: Pague Menos = `emp{loja}@`, Extrafarma = `ef{loja}@`. A bandeira vem da infofilial
-  ou, se lá não estiver clara, do host no Zabbix (`zabbix.padroes_bandeira`). Bandeira desconhecida =
-  chamado sem a loja em cópia.
+  e-mail válido, pelo número da loja: 7000 ou mais = Extrafarma (`ef{loja}@`), abaixo de 7000 =
+  Pague Menos (`emp{loja}@`). O corte fica em `gmail.extrafarma_a_partir_de`.
 - **`planilha.colunas`:** o valor de cada coluna da planilha de desastres, na ordem.
 - **`instrucoes`** (Zabbix, infofilial, Sumo Vision, planilha): dicas em texto livre sobre a
   tela, caso o bot erre algo específico do seu sistema.

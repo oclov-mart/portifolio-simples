@@ -90,11 +90,9 @@ def classificar(alarmes: list[Alarme], cfg: dict) -> list[Ocorrencia]:
     return ocorrencias
 
 
-def bandeira_pelo_zabbix(alarme: Alarme, padroes: dict[str, str]) -> str | None:
-    """Bandeira da loja pelo host/nome do alarme no Zabbix; None se não der para saber."""
-    texto = f"{alarme.host} {alarme.problema}"
-    achadas = [b for b, rx in padroes.items() if rx and re.search(rx, texto)]
-    return achadas[0] if len(achadas) == 1 else None  # ambíguo = desconhecida
+def bandeira(loja: int, extrafarma_a_partir_de: int = 7000) -> Literal["pague_menos", "extrafarma"]:
+    """Extrafarma são as lojas da casa dos 7000 (ex.: 7021); as demais são Pague Menos."""
+    return "extrafarma" if loja >= extrafarma_a_partir_de else "pague_menos"
 
 
 def resumir_energia(respostas: list[str]) -> Literal["sim", "nao"] | None:

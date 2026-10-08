@@ -24,7 +24,7 @@ from .gmail import Gmail
 from .infofilial import Filial, InfoFilial
 from .navegador import Navegador
 from .planilha import Planilha
-from .regras import Ocorrencia, bandeira_pelo_zabbix, classificar, resumir_energia
+from .regras import Ocorrencia, bandeira, classificar, resumir_energia
 from .sumovision import SumoVision
 from .visao import Visao
 from .whatsapp import TravaSeguranca, WhatsApp
@@ -310,27 +310,19 @@ class BotNOC:
         """E-mail da unidade para a cópia dos chamados.
 
         1. O e-mail mostrado na infofilial, se for válido.
-        2. Senão, montado pela bandeira: Pague Menos = emp<nº>, Extrafarma = ef<nº>.
-           A bandeira vem da infofilial ou, se lá não estiver clara, do Zabbix.
-        3. Bandeira desconhecida: vazio (sem cópia para a loja). Não chuta, porque
-           emp123 e ef123 são lojas diferentes.
+        2. Plano B pelo número da loja: 7000 ou mais = Extrafarma (ef<nº>@),
+           abaixo de 7000 = Pague Menos (emp<nº>@).
         """
         email = filial.email_loja.strip()
         if re.fullmatch(r"[\w.+-]+@[\w-]+(\.[\w-]+)+", email):
             return email
-        bandeira = (filial.bandeira if filial.bandeira != "desconhecida"
-                    else bandeira_pelo_zabbix(o.alarme, self.cfg["zabbix"]["padroes_bandeira"]))
-        modelo = self.cfg["gmail"]["email_loja_por_bandeira"].get(bandeira or "")
-        reserva = formatar(modelo, {"loja": o.loja}) if modelo else ""
+        g = self.cfg["gmail"]
+        rede = bandeira(o.loja, g["extrafarma_a_partir_de"])
+        reserva = formatar(g["email_loja_por_bandeira"][rede], {"loja": o.loja})
         if o.loja not in self._email_avisado:
             self._email_avisado.add(o.loja)
-            motivo = f"inválido ({email!r})" if email else "ausente"
-            if reserva:
-                log.warning("Loja %s: e-mail da unidade %s na infofilial; bandeira %s -> %s",
-                            o.loja, motivo, bandeira, reserva)
-            else:
-                log.warning("Loja %s: e-mail da unidade %s e bandeira desconhecida; chamados "
-                            "seguem SEM a loja em cópia", o.loja, motivo)
+            log.warning("Loja %s: e-mail da unidade %s na infofilial; usando %s (%s)", o.loja,
+                        f"inválido ({email!r})" if email else "ausente", reserva, rede)
         return reserva
 
     def _operadoras_da_filial(self, filial: Filial) -> list[str]:

@@ -36,7 +36,6 @@ PADROES = {
         "padrao_loja": r"(?i)(?:loja|filial|lj|f)[\s_-]*0*(\d{1,4})",
         "padrao_icmp": r"(?i)icmp",
         "padrao_link": r"(?i)(link|interface|wan|circuito)",
-        "padroes_bandeira": {"pague_menos": r"(?i)pague\s*menos", "extrafarma": r"(?i)extra\s*farma"},
         "minutos_link": 10,
         "minutos_sem_resposta": 30,
         "max_telas": 5,
@@ -52,6 +51,7 @@ PADROES = {
         "mensagens": {},
     },
     "gmail": {"url": "https://mail.google.com/mail/u/0/", "cc_noc": [], "dias_busca_protocolo": 3,
+              "extrafarma_a_partir_de": 7000,
               "email_loja_por_bandeira": {"pague_menos": "emp{loja}@pmenos.com.br",
                                           "extrafarma": "ef{loja}@pmenos.com.br"}},
     "sumovision": {
