@@ -79,6 +79,8 @@ Tudo que é específico do seu ambiente está no `config.yaml`:
 - **`zabbix.url_problemas`:** use um filtro salvo com só lojas, ICMP e links, **sem esconder os
   reconhecidos**, porque o bot precisa continuar vendo o alarme depois de dar ack.
 - **`padrao_loja`, `padrao_icmp`, `padrao_link`:** como identificar loja, ICMP e link no host/alarme.
+  Todos os hosts usam `EMP` (ex.: `FW - EMP7030`); o bot extrai só o número. O `EMP` do host
+  não define a rede da loja; isso vale só para o e-mail (regra dos 7000).
 - **`whatsapp.mensagens`, `zabbix.mensagens`:** os textos. Todos os de WhatsApp precisam ter `{loja}`.
   No Zabbix, `email_enviado` (Padrão 1) é postado logo após o e-mail à operadora e
   `chamado_aberto` (Padrão 2) quando o protocolo chega no Gmail ou sai do Sumo Vision; `{data}`

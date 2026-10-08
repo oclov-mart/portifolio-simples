@@ -33,7 +33,7 @@ PADROES = {
     "zabbix": {
         "url_problemas": "https://zabbix.pmenos.com.br/zabbix.php?action=problem.view",
         "instrucoes": "",
-        "padrao_loja": r"(?i)(?:loja|filial|lj|f)[\s_-]*0*(\d{1,4})",
+        "padrao_loja": r"(?i)\bEMP[\s_-]*0*(\d{1,5})",
         "padrao_icmp": r"(?i)icmp",
         "padrao_link": r"(?i)(link|interface|wan|circuito)",
         "minutos_link": 10,
