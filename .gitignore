@@ -2,3 +2,9 @@ node_modules/
 dist/
 .env
 .DS_Store
+# 02-noc-automacao
+__pycache__/
+.venv/
+02-noc-automacao/config.yaml
+02-noc-automacao/.perfil-navegador/
+02-noc-automacao/prints/

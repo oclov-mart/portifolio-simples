@@ -1,0 +1,44 @@
+# Copie para config.yaml e ajuste para o seu ambiente.
+# config.yaml fica fora do git (pode conter URLs internas).
+
+modelo: claude-opus-5-5
+esforco_agente: high          # cliques/formulários: low | medium | high | xhigh | max
+esforco_monitoramento: low    # leitura dos painéis (mais barato)
+severidade_minima: alta       # info | baixa | media | alta | desastre
+confirmar_acoes: true         # pede "s/N" no terminal antes de enviar chamado/mensagem
+max_passos: 40                # limite de rodadas do agente por tarefa
+intervalo_ciclo_seg: 300      # usado pelo comando "loop"
+
+navegador:
+  perfil_dir: .perfil-navegador   # guarda cookies/login (WhatsApp, painéis)
+  pasta_prints: prints
+  largura: 1280
+  altura: 800
+  headless: false
+
+# Abas que serão monitoradas. "instrucoes" ajuda o Claude a ler cada tela.
+abas:
+  - nome: zabbix
+    url: https://zabbix.exemplo.local/zabbix.php?action=problem.view
+    instrucoes: >
+      Tela de problemas do Zabbix. Cada linha é um problema ativo; a coluna
+      Severity indica a gravidade (Disaster = desastre, High = alta,
+      Average = media, Warning = baixa, Information = info).
+  - nome: grafana
+    url: https://grafana.exemplo.local/d/abc123/links-wan
+    instrucoes: >
+      Painel de links WAN. Painéis vermelhos indicam link fora (alta);
+      amarelos indicam perda de pacote acima de 5% (media).
+
+formulario_chamado:
+  url: https://chamados.exemplo.local/novo
+  instrucoes: |
+    - Título: "[NOC] <host> - <descrição curta>"
+    - Categoria: Infraestrutura > Rede
+    - Prioridade: desastre -> Crítica, alta -> Alta, media -> Média
+    - Descrição: copie a descrição do alerta e o painel de origem
+    - Botão final: "Salvar"
+
+whatsapp:
+  contato: "NOC - Plantão"
+  modelo_mensagem: "🚨 [NOC] {severidade}: {host} - {descricao} (painel: {aba}). Chamado: {chamado}"
