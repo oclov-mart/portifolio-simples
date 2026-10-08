@@ -25,6 +25,10 @@ zabbix:
   padrao_loja: '(?i)(?:loja|filial|lj|f)[\s_-]*0*(\d{1,4})'   # extrai o nº da loja do host
   padrao_icmp: '(?i)icmp'
   padrao_link: '(?i)(link|interface|wan|circuito)'
+  # Como identificar a bandeira pelo host/alarme (usado se a infofilial não deixar claro)
+  padroes_bandeira:
+    pague_menos: '(?i)pague\s*menos'
+    extrafarma: '(?i)extra\s*farma'
   minutos_link: 10
   minutos_sem_resposta: 30
   mensagens:
@@ -68,9 +72,12 @@ gmail:
   url: https://mail.google.com/mail/u/0/
   cc_noc: [noc@pmenos.com.br]
   dias_busca_protocolo: 3
-  # E-mail da unidade em cópia: usa o da infofilial (algumas lojas são ef<nº>@);
-  # se a página não mostrar, usa este padrão.
-  email_loja_padrao: "emp{loja}@pmenos.com.br"
+  # E-mail da unidade em cópia: usa o da infofilial. Se a página não mostrar,
+  # monta pela bandeira da loja (lida na infofilial ou no Zabbix). Bandeira
+  # desconhecida = chamado sai sem a loja em cópia.
+  email_loja_por_bandeira:
+    pague_menos: "emp{loja}@pmenos.com.br"
+    extrafarma: "ef{loja}@pmenos.com.br"
 
 sumovision:
   url: https://sumovision.fbrlabs.com.br/

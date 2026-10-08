@@ -24,7 +24,7 @@ from .gmail import Gmail
 from .infofilial import Filial, InfoFilial
 from .navegador import Navegador
 from .planilha import Planilha
-from .regras import Ocorrencia, classificar, resumir_energia
+from .regras import Ocorrencia, bandeira_pelo_zabbix, classificar, resumir_energia
 from .sumovision import SumoVision
 from .visao import Visao
 from .whatsapp import TravaSeguranca, WhatsApp
@@ -244,7 +244,8 @@ class BotNOC:
             if op["canal"] == "email":
                 assunto = formatar(op["assunto"], dados)
                 cc = list(self.cfg["gmail"]["cc_noc"]) + list(op.get("cc", []))
-                cc.append(dados["email_loja"])
+                if dados["email_loja"]:
+                    cc.append(dados["email_loja"])
                 self.gmail.enviar(op["para"], cc, assunto, formatar(op["corpo"], dados))
                 reg["chamados"][operadora] = {"canal": "email", "assunto": assunto,
                                               "circuito": dados["circuito"], "protocolo": None}
@@ -305,18 +306,32 @@ class BotNOC:
         return list(dict.fromkeys(t for t in (filial.telefone_loja, filial.gl_telefone,
                                               filial.gr_telefone) if t))
 
-    def _email_loja(self, filial: Filial, loja: int) -> str:
-        """E-mail da unidade: o da infofilial (pode ser emp… ou ef…); sem ele, emp<loja>@."""
+    def _email_loja(self, filial: Filial, o: Ocorrencia) -> str:
+        """E-mail da unidade para a cópia dos chamados.
+
+        1. O e-mail mostrado na infofilial, se for válido.
+        2. Senão, montado pela bandeira: Pague Menos = emp<nº>, Extrafarma = ef<nº>.
+           A bandeira vem da infofilial ou, se lá não estiver clara, do Zabbix.
+        3. Bandeira desconhecida: vazio (sem cópia para a loja). Não chuta, porque
+           emp123 e ef123 são lojas diferentes.
+        """
         email = filial.email_loja.strip()
         if re.fullmatch(r"[\w.+-]+@[\w-]+(\.[\w-]+)+", email):
             return email
-        padrao = formatar(self.cfg["gmail"]["email_loja_padrao"], {"loja": loja})
-        if loja in self._email_avisado:
-            return padrao
-        self._email_avisado.add(loja)
-        log.warning("Loja %s: e-mail da unidade %s na infofilial; usando %s",
-                    loja, "inválido (%r)" % email if email else "ausente", padrao)
-        return padrao
+        bandeira = (filial.bandeira if filial.bandeira != "desconhecida"
+                    else bandeira_pelo_zabbix(o.alarme, self.cfg["zabbix"]["padroes_bandeira"]))
+        modelo = self.cfg["gmail"]["email_loja_por_bandeira"].get(bandeira or "")
+        reserva = formatar(modelo, {"loja": o.loja}) if modelo else ""
+        if o.loja not in self._email_avisado:
+            self._email_avisado.add(o.loja)
+            motivo = f"inválido ({email!r})" if email else "ausente"
+            if reserva:
+                log.warning("Loja %s: e-mail da unidade %s na infofilial; bandeira %s -> %s",
+                            o.loja, motivo, bandeira, reserva)
+            else:
+                log.warning("Loja %s: e-mail da unidade %s e bandeira desconhecida; chamados "
+                            "seguem SEM a loja em cópia", o.loja, motivo)
+        return reserva
 
     def _operadoras_da_filial(self, filial: Filial) -> list[str]:
         nomes = {c.operadora.strip().lower() for c in filial.circuitos}
@@ -330,7 +345,7 @@ class BotNOC:
                              for op, c in reg["chamados"].items())
         operadora = o.operadora or ""
         return filial.campos() | {
-            "email_loja": self._email_loja(filial, o.loja),
+            "email_loja": self._email_loja(filial, o),
             "loja": o.loja, "host": o.alarme.host, "problema": o.alarme.problema,
             "inicio": o.alarme.hora_inicio, "duracao": o.alarme.duracao,
             # A coluna de horário do Zabbix pode trazer só a hora; a data vem da duração.
