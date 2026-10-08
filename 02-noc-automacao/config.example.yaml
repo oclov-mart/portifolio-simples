@@ -68,6 +68,9 @@ gmail:
   url: https://mail.google.com/mail/u/0/
   cc_noc: [noc@pmenos.com.br]
   dias_busca_protocolo: 3
+  # E-mail da unidade em cópia: usa o da infofilial (algumas lojas são ef<nº>@);
+  # se a página não mostrar, usa este padrão.
+  email_loja_padrao: "emp{loja}@pmenos.com.br"
 
 sumovision:
   url: https://sumovision.fbrlabs.com.br/

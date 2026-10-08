@@ -13,6 +13,7 @@ Cada alarme vira uma ocorrência com uma fase, guardada no estado.json:
 """
 
 import logging
+import re
 from datetime import datetime, timedelta
 
 import anthropic
@@ -50,6 +51,7 @@ class BotNOC:
         self.sumo = SumoVision(visao, nav, cfg)
         self.planilha = Planilha(visao, nav, cfg)
         self.estado = Estado(cfg["arquivo_estado"])
+        self._email_avisado: set[int] = set()
 
     # ---------- ciclo ----------
 
@@ -242,8 +244,7 @@ class BotNOC:
             if op["canal"] == "email":
                 assunto = formatar(op["assunto"], dados)
                 cc = list(self.cfg["gmail"]["cc_noc"]) + list(op.get("cc", []))
-                if filial.email_loja:
-                    cc.append(filial.email_loja)
+                cc.append(dados["email_loja"])
                 self.gmail.enviar(op["para"], cc, assunto, formatar(op["corpo"], dados))
                 reg["chamados"][operadora] = {"canal": "email", "assunto": assunto,
                                               "circuito": dados["circuito"], "protocolo": None}
@@ -304,6 +305,19 @@ class BotNOC:
         return list(dict.fromkeys(t for t in (filial.telefone_loja, filial.gl_telefone,
                                               filial.gr_telefone) if t))
 
+    def _email_loja(self, filial: Filial, loja: int) -> str:
+        """E-mail da unidade: o da infofilial (pode ser emp… ou ef…); sem ele, emp<loja>@."""
+        email = filial.email_loja.strip()
+        if re.fullmatch(r"[\w.+-]+@[\w-]+(\.[\w-]+)+", email):
+            return email
+        padrao = formatar(self.cfg["gmail"]["email_loja_padrao"], {"loja": loja})
+        if loja in self._email_avisado:
+            return padrao
+        self._email_avisado.add(loja)
+        log.warning("Loja %s: e-mail da unidade %s na infofilial; usando %s",
+                    loja, "inválido (%r)" % email if email else "ausente", padrao)
+        return padrao
+
     def _operadoras_da_filial(self, filial: Filial) -> list[str]:
         nomes = {c.operadora.strip().lower() for c in filial.circuitos}
         return [k for k, op in self.cfg["operadoras"].items()
@@ -316,6 +330,7 @@ class BotNOC:
                              for op, c in reg["chamados"].items())
         operadora = o.operadora or ""
         return filial.campos() | {
+            "email_loja": self._email_loja(filial, o.loja),
             "loja": o.loja, "host": o.alarme.host, "problema": o.alarme.problema,
             "inicio": o.alarme.hora_inicio, "duracao": o.alarme.duracao,
             # A coluna de horário do Zabbix pode trazer só a hora; a data vem da duração.

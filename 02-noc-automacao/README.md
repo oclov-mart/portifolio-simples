@@ -86,6 +86,8 @@ Tudo que é específico do seu ambiente está no `config.yaml`:
   código, e a IA só digita o texto pronto.
 - **`operadoras`:** destinatários, assunto, corpo (com a assinatura obrigatória da Claro) e o
   padrão do protocolo na resposta de cada uma. Os e-mails estão como `PREENCHER`.
+- **`gmail.email_loja_padrao`:** e-mail da unidade em cópia nos chamados quando a infofilial não
+  mostra um e-mail válido (padrão `emp{loja}@pmenos.com.br`; lojas `ef…` são cobertas pela infofilial).
 - **`planilha.colunas`:** o valor de cada coluna da planilha de desastres, na ordem.
 - **`instrucoes`** (Zabbix, infofilial, Sumo Vision, planilha): dicas em texto livre sobre a
   tela, caso o bot erre algo específico do seu sistema.

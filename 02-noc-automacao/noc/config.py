@@ -50,7 +50,8 @@ PADROES = {
         "seletor_titulo_conversa": "#main header",
         "mensagens": {},
     },
-    "gmail": {"url": "https://mail.google.com/mail/u/0/", "cc_noc": [], "dias_busca_protocolo": 3},
+    "gmail": {"url": "https://mail.google.com/mail/u/0/", "cc_noc": [], "dias_busca_protocolo": 3,
+              "email_loja_padrao": "emp{loja}@pmenos.com.br"},
     "sumovision": {
         "url": "https://sumovision.fbrlabs.com.br/",
         "instrucoes": "",
