@@ -32,7 +32,15 @@ zabbix:
     contato_link: "[BOT NOC] Link {operadora} da loja {loja} fora desde {inicio}. Chamados: {chamados}. Loja/GL/GR avisados."
     sem_resposta: "[BOT NOC] Loja {loja} sem retorno da loja/GL/GR após 30 min. Verificar manualmente."
     energia: "ENERGIA - [BOT NOC] Falta de energia confirmada na loja {loja} às {hora}."
-    protocolo: "[BOT NOC] Protocolo {operadora}: {protocolo}"
+    # Padrão 1: logo após enviar o e-mail de chamado
+    email_enviado: |
+      Lj {loja}: Foi enviado e-mail para a {operadora} informando link inoperante.
+      Observação: Aguardando o número do protocolo.
+    # Padrão 2: depois que o protocolo chega no Gmail (ou ao abrir no Sumo Vision);
+    # {data} e {hora} = momento em que o protocolo foi obtido
+    chamado_aberto: |
+      Lj {loja}: Foi aberto o chamado nº {protocolo} junto à {operadora} para tratar link inoperante em {data} às {hora}.
+      Circuito: {circuito}
 
 infofilial:
   url: http://localhost:8080/infofilial/{loja}

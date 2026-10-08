@@ -62,6 +62,8 @@ PADROES = {
 
 # Mensagens de WhatsApp precisam citar a loja: é o que a trava confere.
 MENSAGENS_WHATSAPP = ["icmp_loja", "icmp_gestor", "link_loja", "link_gestor", "energia_grupo"]
+MENSAGENS_ZABBIX = ["contato_icmp", "contato_link", "sem_resposta", "energia",
+                    "email_enviado", "chamado_aberto"]
 
 
 def _mesclar(base: dict, extra: dict) -> dict:
@@ -93,6 +95,9 @@ def validar(cfg: dict) -> None:
                     erros.append(f"operadoras.{nome}.{campo} não definido")
             if op.get("padrao_protocolo"):
                 re.compile(op["padrao_protocolo"])
+    for chave in MENSAGENS_ZABBIX:
+        if not cfg["zabbix"]["mensagens"].get(chave):
+            erros.append(f"zabbix.mensagens.{chave} não definido")
     if not cfg["whatsapp"]["grupo_energia"]:
         erros.append("whatsapp.grupo_energia não definido")
     if erros:

@@ -161,8 +161,10 @@ class BotNOC:
                 log.warning("Loja %s: operadora do link não identificada em %r",
                             o.loja, o.alarme.problema)
             self._avisar(reg, filial, "link", dados)
-            self._uma_vez(reg, "zbx_contato", lambda: self.zabbix.atualizar(
-                o.alarme, formatar(self.cfg["zabbix"]["mensagens"]["contato_link"], dados), ack=True))
+            if not reg["chamados"]:
+                # Sem chamado aberto não há Padrão 1/2: registra o contato e dá ack.
+                self._uma_vez(reg, "zbx_contato", lambda: self.zabbix.atualizar(
+                    o.alarme, formatar(self.cfg["zabbix"]["mensagens"]["contato_link"], dados), ack=True))
             reg["fase"] = "aguardando_protocolo"
 
         if reg["fase"] == "aguardando_protocolo":
@@ -243,14 +245,22 @@ class BotNOC:
                 if filial.email_loja:
                     cc.append(filial.email_loja)
                 self.gmail.enviar(op["para"], cc, assunto, formatar(op["corpo"], dados))
-                reg["chamados"][operadora] = {"canal": "email", "assunto": assunto, "protocolo": None}
+                reg["chamados"][operadora] = {"canal": "email", "assunto": assunto,
+                                              "circuito": dados["circuito"], "protocolo": None}
             else:
                 protocolo = self.sumo.abrir_chamado(formatar(op["titulo"], dados), dados["circuito"],
                                                     formatar(op["descricao"], dados))
-                reg["chamados"][operadora] = {"canal": "sumovision", "protocolo": protocolo}
+                reg["chamados"][operadora] = {"canal": "sumovision", "circuito": dados["circuito"],
+                                              "protocolo": protocolo, "capturado_em": agora()}
                 log.info("Loja %s: chamado FBR %s", o.loja, protocolo)
 
         self._uma_vez(reg, f"chamado_{operadora}", abrir)
+
+        # Padrão 1: assim que o e-mail sai, registra no Zabbix que aguarda o protocolo.
+        if (reg["chamados"].get(operadora) or {}).get("canal") == "email":
+            texto = formatar(self.cfg["zabbix"]["mensagens"]["email_enviado"], dados)
+            self._uma_vez(reg, f"zbx_email_{operadora}",
+                          lambda: self.zabbix.atualizar(o.alarme, texto, ack=True))
 
     def _coletar_protocolos(self, o: Ocorrencia, reg: dict, dados: dict) -> None:
         """Procura no Gmail os protocolos que ainda faltam e registra no Zabbix."""
@@ -261,12 +271,18 @@ class BotNOC:
                 if not protocolo:
                     continue
                 chamado["protocolo"] = protocolo
+                chamado["capturado_em"] = agora()
+                self.estado.salvar()
                 log.info("Loja %s: protocolo %s = %s", o.loja, operadora, protocolo)
             if chamado["protocolo"]:
-                texto = formatar(self.cfg["zabbix"]["mensagens"]["protocolo"], dados | {
-                    "operadora": op_nome(self.cfg, operadora), "protocolo": chamado["protocolo"]})
-                self._uma_vez(reg, f"zbx_protocolo_{operadora}",
-                              lambda t=texto: self.zabbix.atualizar(o.alarme, t, ack=None))
+                # Padrão 2: chamado aberto, com data/hora em que o protocolo foi obtido.
+                quando = datetime.fromisoformat(chamado.get("capturado_em") or agora())
+                texto = formatar(self.cfg["zabbix"]["mensagens"]["chamado_aberto"], dados | {
+                    "operadora": op_nome(self.cfg, operadora), "protocolo": chamado["protocolo"],
+                    "circuito": chamado.get("circuito", ""),
+                    "data": quando.strftime("%d/%m/%Y"), "hora": quando.strftime("%H:%M")})
+                self._uma_vez(reg, f"zbx_chamado_{operadora}",
+                              lambda t=texto: self.zabbix.atualizar(o.alarme, t, ack=True))
         if all(c["protocolo"] for c in reg["chamados"].values()):
             reg["fase"] = "concluido"
 

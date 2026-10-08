@@ -89,7 +89,8 @@ o histórico. Se não encontrar a linha, conclua com sucesso=false.""")
     def atualizar(self, alarme: Alarme, mensagem: str, ack: bool | None) -> None:
         """Posta `mensagem` no alarme. ack=True reconhece, False remove o reconhecimento."""
         opcao = {
-            True: 'marque a caixa "Acknowledge" (Reconhecer)',
+            True: ('marque a caixa "Acknowledge" (Reconhecer); se o problema já estiver '
+               'reconhecido e essa caixa não estiver disponível, apenas siga'),
             False: 'marque a caixa "Unacknowledge" (Remover reconhecimento)',
             None: "não altere as caixas de reconhecimento",
         }[ack]

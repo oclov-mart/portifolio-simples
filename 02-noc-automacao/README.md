@@ -80,6 +80,10 @@ Tudo que é específico do seu ambiente está no `config.yaml`:
   reconhecidos**, porque o bot precisa continuar vendo o alarme depois de dar ack.
 - **`padrao_loja`, `padrao_icmp`, `padrao_link`:** como identificar loja, ICMP e link no host/alarme.
 - **`whatsapp.mensagens`, `zabbix.mensagens`:** os textos. Todos os de WhatsApp precisam ter `{loja}`.
+  No Zabbix, `email_enviado` (Padrão 1) é postado logo após o e-mail à operadora e
+  `chamado_aberto` (Padrão 2) quando o protocolo chega no Gmail ou sai do Sumo Vision; `{data}`
+  e `{hora}` nele são o momento em que o protocolo foi obtido. Os valores são preenchidos pelo
+  código, e a IA só digita o texto pronto.
 - **`operadoras`:** destinatários, assunto, corpo (com a assinatura obrigatória da Claro) e o
   padrão do protocolo na resposta de cada uma. Os e-mails estão como `PREENCHER`.
 - **`planilha.colunas`:** o valor de cada coluna da planilha de desastres, na ordem.
