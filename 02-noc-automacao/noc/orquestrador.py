@@ -13,7 +13,7 @@ Cada alarme vira uma ocorrência com uma fase, guardada no estado.json:
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import anthropic
 
@@ -302,12 +302,16 @@ class BotNOC:
         return filial.campos() | {
             "loja": o.loja, "host": o.alarme.host, "problema": o.alarme.problema,
             "inicio": o.alarme.hora_inicio, "duracao": o.alarme.duracao,
+            # A coluna de horário do Zabbix pode trazer só a hora; a data vem da duração.
+            "data_inicio": (agora_ - timedelta(minutes=o.alarme.minutos)).strftime("%d/%m/%Y %H:%M"),
             "data": agora_.strftime("%d/%m/%Y"), "hora": agora_.strftime("%H:%M"),
             "operadora": op_nome(self.cfg, operadora) if operadora else "",
             "circuito": filial.circuito_da(self.cfg["operadoras"].get(operadora, {})
                                            .get("nome_infofilial", operadora)) if operadora else "",
             "protocolo": (reg["chamados"].get(operadora) or {}).get("protocolo") or "",
             "chamados": chamados or "nenhum",
+            "energia_local": ("Sim, a loja segue comunicando pelo outro link" if o.tipo == "link"
+                              else "Sim, confirmado pela loja/gestores"),
         }
 
 

@@ -87,8 +87,8 @@ Tudo que é específico do seu ambiente está no `config.yaml`:
   tela, caso o bot erre algo específico do seu sistema.
 
 Campos disponíveis nos textos: `{loja} {nome_loja} {cidade} {endereco} {telefone_loja}
-{email_loja} {gl_nome} {gl_telefone} {gr_nome} {gr_telefone} {host} {problema} {inicio}
-{duracao} {data} {hora} {operadora} {circuito} {protocolo} {chamados} {nome}` (`{nome}` =
+{email_loja} {gl_nome} {gl_telefone} {gr_nome} {gr_telefone} {horario_funcionamento} {energia_local} {host} {problema} {inicio}
+{duracao} {data_inicio} {data} {hora} {operadora} {circuito} {protocolo} {chamados} {nome}` (`{nome}` =
 destinatário da mensagem).
 
 ## Estrutura

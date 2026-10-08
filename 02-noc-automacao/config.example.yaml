@@ -86,7 +86,7 @@ operadoras:
     corpo: |
       Prezados,
 
-      Solicitamos abertura de chamado para o circuito abaixo, inoperante desde {inicio}.
+      Solicitamos abertura de chamado para o circuito abaixo, inoperante desde {data_inicio}.
 
       Circuito: {circuito}
       Unidade: Loja {loja} - {nome_loja}
@@ -106,7 +106,7 @@ operadoras:
     corpo: |
       Prezados,
 
-      Solicitamos abertura de chamado para o circuito abaixo, inoperante desde {inicio}.
+      Solicitamos abertura de chamado para o circuito abaixo, inoperante desde {data_inicio}.
 
       Circuito: {circuito}
       Unidade: Loja {loja} - {nome_loja}
@@ -128,7 +128,7 @@ operadoras:
     corpo: |
       Prezados,
 
-      Circuito {circuito} da Loja {loja} - {nome_loja} ({cidade}) inoperante desde {inicio}.
+      Circuito {circuito} da Loja {loja} - {nome_loja} ({cidade}) inoperante desde {data_inicio}.
       Favor abrir chamado e informar o protocolo.
 
       Atenciosamente,
@@ -139,4 +139,4 @@ operadoras:
     padrao_zabbix: '(?i)fbr'
     nome_infofilial: FBR
     titulo: "Loja {loja} - {nome_loja} - link inoperante"
-    descricao: "Link FBR da loja {loja} ({cidade}) inoperante desde {inicio}. Contato na loja: {telefone_loja}."
+    descricao: "Link FBR da loja {loja} ({cidade}) inoperante desde {data_inicio}. Contato na loja: {telefone_loja}."

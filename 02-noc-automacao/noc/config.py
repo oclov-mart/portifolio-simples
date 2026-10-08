@@ -83,6 +83,8 @@ def validar(cfg: dict) -> None:
         elif "{loja}" not in texto:
             erros.append(f"whatsapp.mensagens.{chave} precisa conter {{loja}} (trava de segurança)")
     for nome, op in cfg["operadoras"].items():
+        if "PREENCHER" in str(op):
+            erros.append(f"operadoras.{nome} ainda tem campos 'PREENCHER'")
         if op.get("canal") not in ("email", "sumovision"):
             erros.append(f"operadoras.{nome}.canal deve ser 'email' ou 'sumovision'")
         if op.get("canal") == "email":

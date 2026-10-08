@@ -35,6 +35,7 @@ class Filial(BaseModel):
     gl_telefone: str
     gr_nome: str
     gr_telefone: str
+    horario_funcionamento: str = Field(description="Horário de funcionamento da loja, se aparecer na página.")
     circuitos: list[Circuito]
 
     def circuito_da(self, operadora: str) -> str:
